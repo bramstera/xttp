@@ -30,10 +30,10 @@ import (
 
 var (
 	listenAddr = flag.String("host", envOr("XHOST", "127.0.0.1"), "HTTP 监听地址（直连公网设 0.0.0.0；IPv6-only 服务器设 ::）")
-	port       = flag.Int("port", envIntOr("PORT", 3000), "HTTP 监听端口")
+	port       = flag.Int("port", envIntOr("PORT", 6027), "HTTP 监听端口")
 	pathFlag   = flag.String("path", envOr("XPATH", "/xtp"), "XHTTP 路径")
-	uuidFlag   = flag.String("uuid", envOr("UUID", ""), "VLESS 用户 UUID")
-	camoFlag   = flag.Bool("camo", envBoolOr("HEALTHY_PAGE", false), "启用伪装页（根路径返回 index.html/Hello world）")
+	uuidFlag   = flag.String("uuid", envOr("UUID", "b64c9a01-3f09-4dea-a0f1-dc85e5a3ac19"), "VLESS 用户 UUID")
+	camoFlag   = flag.Bool("camo", envBoolOr("HEALTHY_PAGE", true), "启用伪装页（根路径返回 index.html/Hello world）")
 )
 
 func envOr(key, def string) string {
