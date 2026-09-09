@@ -1,0 +1,37 @@
+{
+  "log": {"loglevel": "warning"},
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 1080,
+      "protocol": "socks",
+      "settings": {"auth": "noauth", "udp": true}
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "your.domain.com",
+            "port": 443,
+            "users": [
+              {"id": "5efabea4-f6d4-91fd-b8f0-17e004c89c60", "encryption": "none"}
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "security": "tls",
+        "tlsSettings": {"serverName": "your.domain.com", "allowInsecure": false},
+        "xhttpSettings": {
+          "path": "/xtp",
+          "host": "your.domain.com",
+          "mode": "auto"
+        }
+      }
+    }
+  ]
+}
