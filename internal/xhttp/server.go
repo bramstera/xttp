@@ -37,16 +37,21 @@ type Handler struct {
 	// 上行 reader（来自 uploadQueue）与下行 writer（来自 GET 连接）。
 	HandleConn func(c net.Conn)
 
+	// RequirePadding 开启时强制校验每个请求的 x_padding
+	// （长度 [100,1000]，Referer 或 URL 查询参数）。关闭时放行。
+	RequirePadding bool
+
 	mu       sync.Mutex
 	sessions map[string]*session
 }
 
-// NewHandler 创建 Handler。
-func NewHandler(path string, handleConn func(net.Conn)) *Handler {
+// NewHandler 创建 Handler。requirePadding 对应服务端
+// PADDING_REQUIRED 环境变量（默认关闭即放行无 padding 请求）。
+func NewHandler(path string, handleConn func(net.Conn), requirePadding bool) *Handler {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
-	return &Handler{Path: path, HandleConn: handleConn, sessions: map[string]*session{}}
+	return &Handler{Path: path, HandleConn: handleConn, RequirePadding: requirePadding, sessions: map[string]*session{}}
 }
 
 // upsertSession 查找或创建会话。创建后 30 秒内未完成 GET 即回收
@@ -92,7 +97,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// padding 校验：非混淆模式下客户端总是携带 x_padding
 	// （URL 查询参数或 Referer 查询参数），缺失或长度出界一律 400。
-	if !checkPadding(r) {
+	if h.RequirePadding && !checkPadding(r) {
 		http.Error(w, "invalid padding", http.StatusBadRequest)
 		return
 	}

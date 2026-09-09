@@ -48,6 +48,7 @@ UUID=5efabea4-f6d4-91fd-b8f0-17e004c89c60 PORT=3000 XPATH=/xtp ./run.sh
 | `XPATH` | `-path` | `/xtp` | XHTTP 路径 |
 | `XHOST` | `-host`  | `127.0.0.1` | HTTP 监听地址；直连公网设 `0.0.0.0`，IPv6-only 服务器设 `::` |
 | `HEALTHY_PAGE` | `-camo` | `false` | 启用伪装页：根路径返回编译时嵌入的 `index.html`（无则 "Hello world"） |
+| `PADDING_REQUIRED` | `-padding-required` | `false` | 强制校验 `x_padding`（长度 100–1000，Referer 或 URL 查询参数）。套 CDN 时建议开启以拦截边缘扫描器；Xray 客户端总是填充，可正常互通 |
 
 ## 伪装页
 
@@ -98,7 +99,7 @@ go build -o xhttp-go .
   - `POST /{path}/{sid}` → stream-up（请求体即上行流，独占，重复 push 返回 409）
   - `POST /{path}/` → stream-one（请求体即上行流，响应体即下行流，单连接双向）
   - 会话 TTL：创建后 30 秒内未完成 GET 即回收
-  - `x_padding` 校验（Referer 或 URL 查询参数，长度 100–1000）
+  - `x_padding` 校验（Referer 或 URL 查询参数，长度 100–1000）；默认放行，`PADDING_REQUIRED=true` 时强制
   - 响应头：`X-Accel-Buffering: no`、`Cache-Control: no-store`、`Content-Type: text/event-stream`、CORS
   - OPTIONS 预检返回 200（浏览器 dialer 支持）
 - **VLESS 协议**（`proxy/vless`）
