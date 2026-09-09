@@ -1,0 +1,78 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          check-latest: true
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Vet & fmt check
+        run: |
+          gofmt -l . | tee /dev/stderr | (! grep .)
+          go vet ./...
+
+      - name: Build static binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: >
+          go build -trimpath
+          -ldflags "-s -w -buildid="
+          -o xhttp-go-${{ matrix.suffix }} .
+
+      # 赋可执行位并打包成 tar.gz（发布物 = tar.gz + sha256）
+      - name: Package tarball
+        run: |
+          chmod +x xhttp-go-${{ matrix.suffix }}
+          tar -czf xhttp-go-${{ matrix.suffix }}.tar.gz xhttp-go-${{ matrix.suffix }}
+
+      - name: Checksums
+        run: sha256sum xhttp-go-${{ matrix.suffix }}.tar.gz > xhttp-go-${{ matrix.suffix }}.tar.gz.sha256
+
+      # tag 构建：直接上传到 Release（不落 Artifacts）
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            xhttp-go-${{ matrix.suffix }}.tar.gz
+            xhttp-go-${{ matrix.suffix }}.tar.gz.sha256
+
+      # 非 tag 构建（push main / PR）：仅在 Actions 页面保留产物备查
+      - name: Upload artifact
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: xhttp-go-${{ matrix.suffix }}
+          path: xhttp-go-${{ matrix.suffix }}.tar.gz
+          if-no-files-found: error
