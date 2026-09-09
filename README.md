@@ -138,15 +138,10 @@ location /xtp {
 - 不支持 MUX、浏览器 dialer、DownloadSettings 分离下载通道
 - 出站无路由/规则引擎（等价于 freedom + 无规则）
 
-## 目录结构
+## 温馨提醒
 
 ```
-main.go                    入口：参数、组装、freedom 出站、VLESS 桥接
-internal/uuid/uuid.go      RFC 4122 UUID 解析
-internal/vless/vless.go    VLESS 协议头解析/编码
-internal/xhttp/server.go   XHTTP 路由 + padding 校验 + CORS
-internal/xhttp/session.go  会话生命周期 + 三种上行/下行模式
-internal/xhttp/queue.go    上行重排队列（packet-up）
-internal/xhttp/conn.go     HTTP 请求 ↔ 双向连接适配
-internal/xhttp/bridge.go   XHTTP 会话 → VLESS net.Conn 桥接
+域名网络需要开启gRPC，否则节点不通
+v2ray订阅：
+vless://5efabea4-f6d4-91fd-b8f0-17e004c89c60@openai.com:443?encryption=none&security=tls&sni=test.broge.ggff.net&fp=chrome&insecure=0&allowInsecure=0&type=xhttp&host=test.broge.ggff.net&path=%2Fxtp&mode=auto#xhttp-cdn
 ```
